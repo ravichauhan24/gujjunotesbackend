@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>OTP Verification - GujjuNotes</title>
+    <style>
+      body {
+        background-color: #f2f4f6;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        padding: 0;
+        margin: 0;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 40px auto;
+        background: #ffffff;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.08);
+      }
+
+      .header {
+        background-color: #0275d8;
+        padding: 20px;
+        text-align: center;
+        color: #ffffff;
+      }
+
+      .header h1 {
+        margin: 0;
+        font-size: 24px;
+        letter-spacing: 1px;
+      }
+
+      .content {
+        padding: 30px;
+        color: #333333;
+      }
+
+      .content h2 {
+        color: #444;
+        font-size: 20px;
+        margin-bottom: 10px;
+      }
+
+      .otp-box {
+        background-color: #f0f0f0;
+        font-size: 28px;
+        font-weight: bold;
+        color: #111;
+        padding: 12px 25px;
+        border-radius: 6px;
+        text-align: center;
+        display: inline-block;
+        margin: 20px 0;
+        letter-spacing: 4px;
+      }
+
+      .note {
+        font-size: 14px;
+        color: #777;
+        margin-top: 20px;
+      }
+
+      .footer {
+        text-align: center;
+        font-size: 13px;
+        color: #aaa;
+        padding: 20px;
+        background-color: #f9f9f9;
+        border-top: 1px solid #eee;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🔐 GujjuNotes OTP Verification</h1>
+      </div>
+      <div class="content">
+        <h2>Hello!</h2>
+        <p>Use the following OTP to verify your email address:</p>
+        <div class="otp-box">{{OTP}}</div>
+        <p>This OTP is valid for a few minutes only.</p>
+        <p class="note">⚠️ Please do not share this OTP with anyone for your security.</p>
+      </div>
+      <div class="footer">
+        © 2025 GujjuNotes · All rights reserved.<br />
+        Made with ❤️ in Gujarat
+      </div>
+    </div>
+  </body>
+</html>
