@@ -10,11 +10,13 @@ require('dotenv').config();
 //   user: 'root',
 //   password: '',
 //   database: 'gujjunotes'
+
 const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME
+  host: 'containers-us-west-123.railway.app', // Replace with yours
+  user: 'root',
+  password: 'yourpassword',
+  database: 'railway',
+  port: 1234, // VERY IMPORTANT: Railway uses a custom port
 });
 
   
