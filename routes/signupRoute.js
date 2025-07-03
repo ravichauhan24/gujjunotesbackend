@@ -12,11 +12,11 @@ require('dotenv').config();
 //   database: 'gujjunotes'
 
 const db = mysql.createConnection({
-  host: 'containers-us-west-123.railway.app', // Replace with yours
+  host: 'mysql.railway.internal', 
   user: 'root',
-  password: 'yourpassword',
+  password: 'djmohQAevdItQhZiGnyoRLmJOSzOyTBW',
   database: 'railway',
-  port: 1234, // VERY IMPORTANT: Railway uses a custom port
+  port: 3306, 
 });
 
   
