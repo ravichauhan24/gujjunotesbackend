@@ -12,11 +12,11 @@ require('dotenv').config();
 //   database: 'gujjunotes'
 
 const db = mysql.createConnection({
-  host: 'mysql.railway.internal', 
-  user: 'root',
-  password: 'djmohQAevdItQhZiGnyoRLmJOSzOyTBW',
-  database: 'railway',
-  port: 3306, 
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT
 });
 
   
