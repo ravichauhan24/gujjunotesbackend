@@ -3,10 +3,12 @@ USE gujjunotes;
 
 CREATE TABLE IF NOT EXISTS notes (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  uploaderName VARCHAR(100),
-  subject VARCHAR(100),
-  semester INT,
-  fileUrl VARCHAR(255),
-  noteType ENUM('free', 'paid'),
-  uploadedAt DATETIME
+  uploaderName VARCHAR(100) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  subject VARCHAR(100) NOT NULL,
+  semester INT NOT NULL,
+  fileUrl VARCHAR(255) NOT NULL,
+  noteType ENUM('free', 'paid') NOT NULL DEFAULT 'free',
+  uploadedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  approved TINYINT(1) DEFAULT 0
 );

@@ -1,12 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const nodemailer = require('nodemailer');
-const db = require('../db'); // Adjust path if needed
+const db = require('../db');
 require('dotenv').config();
 const path = require('path');
 const fs = require('fs');
-
-
 
 // Generate OTP
 function generateOTP() {
@@ -33,14 +31,10 @@ router.post('/send-otp', (req, res) => {
     (err) => {
       if (err) return res.json({ success: false, message: 'DB Error' });
 
-      // ✅ Load email template
       const templatePath = path.join(__dirname, '../templates/otp_template.html');
       let htmlContent = fs.readFileSync(templatePath, 'utf8');
-
-      // ✅ Replace placeholder with real OTP
       htmlContent = htmlContent.replace('{{OTP}}', otp);
 
-      // ✅ Send Email
       const mailOptions = {
         from: process.env.EMAIL_USER,
         to: email,
@@ -55,5 +49,49 @@ router.post('/send-otp', (req, res) => {
     }
   );
 });
+
+
+// ✅ Approve Note API + Send Approval Email
+// ✅ Approve Note API + Send Approval Email
+router.post('/approve-note/:noteId', async (req, res) => {
+  const noteId = req.params.noteId;
+
+  try {
+    // 1. Get note from database
+    const [rows] = await db.promise().query('SELECT * FROM notes WHERE id = ?', [noteId]);
+    const note = rows[0];
+
+    if (!note) {
+      return res.status(404).json({ success: false, message: 'Note not found' });
+    }
+
+    // 2. ✅ FIXED: Set approved = 1 instead of status = 'approved'
+    await db.promise().query('UPDATE notes SET approved = 1 WHERE id = ?', [noteId]);
+
+    // 3. Prepare approval email
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: note.email,
+      subject: '✅ Your Note Has Been Approved!',
+      html: `
+        <p>Hi <b>${note.uploaderName}</b>,</p>
+        <p>Your note titled <b>${note.subject}</b> has been approved and is now live on <b>GujjuNotes</b>.</p>
+        <p>Thanks for sharing your notes with the community! 🙌</p>
+        <hr />
+        <p style="font-size: 12px;">— Team GujjuNotes</p>
+      `
+    };
+
+    // 4. Send the email
+    await transporter.sendMail(mailOptions);
+
+    res.json({ success: true, message: 'Note approved and email sent to user.' });
+
+  } catch (err) {
+    console.error('Approval error:', err);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
 
 module.exports = router;

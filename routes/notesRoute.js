@@ -7,8 +7,12 @@ const router = express.Router();
 const db = require('../db');
 const verifyToken = require('../middleware/auth');
 
+const sendMail = require('../utils/sendMail'); // ✅ CamelCase
 
 
+
+
+require('dotenv').config();
 
 // 🔧 Multer setup for file uploads
 const storage = multer.diskStorage({
@@ -17,22 +21,26 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// ✅ Upload a note
+// ✅ Upload a note with uploadMail
 router.post('/upload', upload.single('noteFile'), (req, res) => {
-  const { uploaderName, subject, semester, noteType } = req.body;
+  const { uploaderName, uploadMail, subject, semester, noteType } = req.body;
+
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'No file uploaded' });
   }
 
   const fileUrl = `/uploads/${req.file.filename}`;
 
-  Note.create({ uploaderName, subject, semester, fileUrl, noteType }, (err, result) => {
-    if (err) {
-      console.error('DB Error:', err);
-      return res.status(500).json({ success: false, message: 'Database error', error: err });
+  Note.create(
+    { uploaderName, uploadMail, subject, semester, fileUrl, noteType },
+    (err, result) => {
+      if (err) {
+        console.error('DB Error:', err);
+        return res.status(500).json({ success: false, message: 'Database error', error: err });
+      }
+      res.json({ success: true, message: 'Note uploaded successfully!' });
     }
-    res.json({ success: true, message: 'Note uploaded successfully!' });
-  });
+  );
 });
 
 // ✅ Get all notes
@@ -75,18 +83,12 @@ router.get('/download/:filename', (req, res) => {
   res.download(filePath);
 });
 
-
-
-// DELETE /api/notes/:id
+// ✅ Delete a note
 router.delete('/:id', verifyToken, (req, res) => {
   const noteId = req.params.id;
 
-  // 1. Find file URL from DB
   db.query('SELECT fileUrl FROM notes WHERE id = ?', [noteId], (err, results) => {
-    if (err) {
-      console.error("DB error:", err);
-      return res.status(500).json({ success: false, message: 'Database error' });
-    }
+    if (err) return res.status(500).json({ success: false, message: 'Database error' });
 
     if (results.length === 0) {
       return res.status(404).json({ success: false, message: 'Note not found' });
@@ -95,26 +97,19 @@ router.delete('/:id', verifyToken, (req, res) => {
     const fileUrl = results[0].fileUrl;
     const filePath = path.join(__dirname, '..', fileUrl);
 
-    // 2. Delete file from disk
     fs.unlink(filePath, (fileErr) => {
       if (fileErr && fileErr.code !== 'ENOENT') {
-        console.error("File deletion error:", fileErr);
         return res.status(500).json({ success: false, message: 'File delete error' });
       }
 
-      // 3. Delete from DB
       db.query('DELETE FROM notes WHERE id = ?', [noteId], (delErr) => {
-        if (delErr) {
-          console.error("DB delete error:", delErr);
-          return res.status(500).json({ success: false, message: 'Failed to delete from DB' });
-        }
+        if (delErr) return res.status(500).json({ success: false, message: 'Failed to delete from DB' });
 
         res.json({ success: true, message: 'Note deleted successfully' });
       });
     });
   });
 });
-
 
 // ✅ Search/filter notes
 router.get('/search', (req, res) => {
@@ -146,15 +141,40 @@ router.get('/search', (req, res) => {
   });
 });
 
-// approved
-// In routes/notes.js
-router.put('/approve/:id', (req, res) => {
+// ✅ Approve note and send email
+router.put('/approve/:id', async (req, res) => {
   const noteId = req.params.id;
-  const sql = 'UPDATE notes SET approved = 1 WHERE id = ?';
-  db.query(sql, [noteId], (err, result) => {
-    if (err) return res.status(500).json({ success: false, message: 'DB error' });
-    res.json({ success: true, message: 'Note approved' });
-  });
+
+  try {
+    const [rows] = await db.promise().query('SELECT * FROM notes WHERE id = ?', [noteId]);
+    const note = rows[0];
+
+    if (!note) {
+      return res.status(404).json({ success: false, message: 'Note not found' });
+    }
+
+    await db.promise().query('UPDATE notes SET approved = 1 WHERE id = ?', [noteId]);
+
+    const mailResult = await sendMail({
+      to: note.uploadMail,
+      subject: '✅ Your Note Has Been Approved!',
+      html: `
+        <p>Hi <b>${note.uploaderName}</b>,</p>
+        <p>Your note titled <b>${note.subject}</b> has been approved and published on GujjuNotes.</p>
+        <p>Thank you for contributing to the community! 🎉</p>
+      `
+    });
+
+    if (!mailResult.success) {
+      console.error('Email failed:', mailResult.error);
+      return res.status(500).json({ success: false, message: 'Note approved but email failed.' });
+    }
+
+    res.json({ success: true, message: 'Note approved and email sent to user' });
+  } catch (err) {
+    console.error('Approval Error:', err);
+    res.status(500).json({ success: false, message: 'Approval failed', error: err });
+  }
 });
 
 
