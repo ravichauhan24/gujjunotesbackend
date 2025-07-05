@@ -135,7 +135,8 @@ router.delete('/:id', verifyToken, (req, res) => {
 
 // ✅ Search/filter notes
 router.get('/search', (req, res) => {
-  const { subject, semester, noteType } = req.query;
+  const { subject, semester, noteType, university, authorName } = req.query;
+
   let sql = 'SELECT * FROM notes WHERE 1=1';
   const params = [];
 
@@ -150,6 +151,14 @@ router.get('/search', (req, res) => {
   if (noteType) {
     sql += ' AND noteType = ?';
     params.push(noteType);
+  }
+   if (university) {
+    sql += ' AND university LIKE ?';
+    params.push(`%${university}%`);
+  }
+  if (authorName) {
+    sql += ' AND authorName LIKE ?';
+    params.push(`%${authorName}%`);
   }
 
   sql += ' ORDER BY uploadedAt DESC';
