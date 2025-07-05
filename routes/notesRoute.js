@@ -22,17 +22,38 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // ✅ Upload a note with uploadMail
+// ✅ Upload a note with uploadMail + authorName + selfMade + university
 router.post('/upload', upload.single('noteFile'), (req, res) => {
-  const { uploaderName, uploadMail, subject, semester, noteType } = req.body;
+  const {
+    uploaderName,
+    uploadMail,
+    subject,
+    semester,
+    noteType,
+    authorName,
+    selfMade,
+    university
+  } = req.body;
 
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'No file uploaded' });
   }
 
   const fileUrl = `/uploads/${req.file.filename}`;
+  const isSelfMade = selfMade === 'on' || selfMade === 'true' ? 1 : 0;
 
   Note.create(
-    { uploaderName, uploadMail, subject, semester, fileUrl, noteType },
+    {
+      uploaderName,
+      uploadMail,
+      subject,
+      semester,
+      fileUrl,
+      noteType,
+      authorName: authorName || null,
+      selfMade: isSelfMade,
+      university: university || null
+    },
     (err, result) => {
       if (err) {
         console.error('DB Error:', err);
@@ -42,6 +63,7 @@ router.post('/upload', upload.single('noteFile'), (req, res) => {
     }
   );
 });
+
 
 // ✅ Get all notes
 router.get('/', (req, res) => {
